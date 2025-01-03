@@ -39,14 +39,14 @@ spec:
             aws s3 cp /etc/config/example_upload_s3.txt s3://your-bucket-name/your-key.txt
             && echo "File uploaded successfully.";
         volumeMounts:
-          - name: example_upload
+          - name: example-upload
             mountPath: /etc/example_files
       restartPolicy: Never
       volumes:
-      - name: example_upload
+      - name: example-upload
         configMap:
           name: deployment-config-map
           items:
-            - key: example_upload_s3_bucket
-              path: example_upload_s3.txt
+            - key: example-upload-s3-bucket
+              path: example-upload-s3.txt
   backoffLimit: 2
