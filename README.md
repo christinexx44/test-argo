@@ -1,3 +1,3 @@
 # test-argo
 
-__only__test__
+__only__for__test__
