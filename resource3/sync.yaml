@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guestbook-ui
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: guestbook-ui
+  template:
+    metadata:
+      labels:
+        app: guestbook-ui
+    spec:
+      containers:
+      - image: gcr.io/heptio-images/ks-guestbook-demo:0.2
+        name: guestbook-ui
+        ports:
+        - containerPort: 80
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: app-upload-s3-
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      serviceAccountName: my-serviceaccount-upload-s3
+      containers:
+      - name: upload-s3-go-container
+        image: amazon/aws-cli:2.22.6
+        command: ["/bin/sh", "-c"]
+        args:
+          - >
+            aws s3 cp /etc/config/example_upload_s3.txt s3://your-bucket-name/your-key.txt
+            && echo "File uploaded successfully.";
+        volumeMounts:
+          - name: example_upload
+            mountPath: /etc/example_files
+      restartPolicy: Never
+      volumes:
+      - name: example_upload
+        configMap:
+          name: deployment-config-map
+          items:
+            - key: example_upload_s3_bucket
+              path: example_upload_s3.txt
+  backoffLimit: 2
